@@ -50,10 +50,8 @@ public class MainApplicationFrame extends JFrame
 
         setJMenuBar(generateMenuBar());
 
-        // Отключаем стандартное закрытие, чтобы перехватить его вручную
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
-        // Добавляем слушатель, который сработает при нажатии на крестик
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
