@@ -1,25 +1,34 @@
 package gui;
 
-import java.awt.Frame;
-
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import log.Logger;
+import javax.swing.*;
+import java.util.Locale;
 
 public class RobotsProgram
 {
-    public static void main(String[] args) {
-      try {
-        UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
-//        UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
-//        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//        UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      SwingUtilities.invokeLater(() -> {
-        MainApplicationFrame frame = new MainApplicationFrame();
-        frame.pack();
-        frame.setVisible(true);
-        frame.setExtendedState(Frame.MAXIMIZED_BOTH);
-      });
-    }}
+  public static void main(String[] args)
+  {
+    Locale.setDefault(new Locale("ru", "RU"));
+
+    UIManager.put("OptionPane.okButtonText", "OK");
+    UIManager.put("OptionPane.yesButtonText", "Да");
+    UIManager.put("OptionPane.noButtonText", "Нет");
+    UIManager.put("OptionPane.cancelButtonText", "Отмена");
+    UIManager.put("OptionPane.titleText", "Подтверждение");
+    UIManager.put("OptionPane.messageDialogTitle", "Подтверждение действия");
+
+    try
+    {
+      UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+    }
+    catch (Exception e)
+    {
+      Logger.error("Failed to set look and feel: " + e.getMessage());
+    }
+
+    SwingUtilities.invokeLater(() -> {
+      MainApplicationFrame frame = new MainApplicationFrame();
+      frame.setVisible(true);
+    });
+  }
+}
