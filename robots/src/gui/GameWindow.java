@@ -8,6 +8,7 @@ import javax.swing.JPanel;
 public class GameWindow extends JInternalFrame
 {
     private final GameVisualizer m_visualizer;
+
     public GameWindow()
     {
         super("Игровое поле", true, true, true, true);
@@ -16,5 +17,9 @@ public class GameWindow extends JInternalFrame
         panel.add(m_visualizer, BorderLayout.CENTER);
         getContentPane().add(panel);
         pack();
+    }
+
+    public void stop() {
+        m_visualizer.stop();
     }
 }

@@ -2,14 +2,11 @@ package gui;
 
 import log.Logger;
 import javax.swing.*;
-import java.util.Locale;
 
 public class RobotsProgram
 {
   public static void main(String[] args)
   {
-    Locale.setDefault(new Locale("ru", "RU"));
-
     UIManager.put("OptionPane.okButtonText", "OK");
     UIManager.put("OptionPane.yesButtonText", "Да");
     UIManager.put("OptionPane.noButtonText", "Нет");

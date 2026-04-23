@@ -14,7 +14,7 @@ import java.util.TimerTask;
 import javax.swing.JPanel;
 
 public class GameVisualizer extends JPanel {
-    private final Timer m_timer = initTimer();
+    private Timer m_timer = initTimer();
 
     private static Timer initTimer() {
         Timer timer = new Timer("events generator", true);
@@ -55,6 +55,14 @@ public class GameVisualizer extends JPanel {
 
         setDoubleBuffered(true);
         setPreferredSize(new Dimension(400, 400));
+    }
+
+    public void stop() {
+        if (m_timer != null) {
+            m_timer.cancel();
+            m_timer.purge();
+            m_timer = null;
+        }
     }
 
     protected void setTargetPosition(Point p) {
