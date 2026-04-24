@@ -3,9 +3,10 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.TextArea;
-
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
+import javax.swing.event.InternalFrameAdapter;
+import javax.swing.event.InternalFrameEvent;
 
 import log.LogChangeListener;
 import log.LogEntry;
@@ -15,10 +16,18 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
 {
     private LogWindowSource m_logSource;
     private TextArea m_logContent;
+    private static final int DEFAULT_X = 10;
+    private static final int DEFAULT_Y = 10;
+    private static final int DEFAULT_WIDTH = 300;
+    private static final int DEFAULT_HEIGHT = 800;
 
     public LogWindow(LogWindowSource logSource)
     {
         super("Протокол работы", true, true, true, true);
+
+        // Устанавливаем значения по умолчанию
+        setBounds(DEFAULT_X, DEFAULT_Y, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+
         m_logSource = logSource;
         m_logSource.registerListener(this);
         m_logContent = new TextArea("");
@@ -29,6 +38,16 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
         getContentPane().add(panel);
         pack();
         updateLogContent();
+
+        // Перехватываем событие закрытия окна
+        addInternalFrameListener(new InternalFrameAdapter()
+        {
+            @Override
+            public void internalFrameClosing(InternalFrameEvent e)
+            {
+                // Можно добавить очистку ресурсов если нужно
+            }
+        });
     }
 
     private void updateLogContent()
