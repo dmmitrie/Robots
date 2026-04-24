@@ -25,7 +25,6 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
     {
         super("Протокол работы", true, true, true, true);
 
-        // Устанавливаем значения по умолчанию
         setBounds(DEFAULT_X, DEFAULT_Y, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
         m_logSource = logSource;
@@ -39,13 +38,11 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
         pack();
         updateLogContent();
 
-        // Перехватываем событие закрытия окна
         addInternalFrameListener(new InternalFrameAdapter()
         {
             @Override
             public void internalFrameClosing(InternalFrameEvent e)
             {
-                // Можно добавить очистку ресурсов если нужно
             }
         });
     }

@@ -4,10 +4,6 @@ import javax.swing.JInternalFrame;
 
 import log.Logger;
 
-/**
- * Класс для управления состоянием окон
- * Отвечает за сохранение и восстановление позиций, размеров и состояния окон
- */
 public class WindowStateManager
 {
     private final ConfigManager configManager;
@@ -17,9 +13,6 @@ public class WindowStateManager
         this.configManager = configManager;
     }
 
-    /**
-     * Сохраняет состояние окна с указанным префиксом
-     */
     public void saveWindowState(String prefix, JInternalFrame frame)
     {
         if (frame == null)
@@ -45,9 +38,6 @@ public class WindowStateManager
         Logger.debug("Состояние окна '" + prefix + "' сохранено");
     }
 
-    /**
-     * Восстанавливает состояние окна с указанным префиксом
-     */
     public void restoreWindowState(String prefix, JInternalFrame frame)
     {
         if (frame == null)
@@ -78,9 +68,6 @@ public class WindowStateManager
         Logger.debug("Состояние окна '" + prefix + "' восстановлено");
     }
 
-    /**
-     * Сохраняет состояние главного окна
-     */
     public void saveMainWindowState(MainApplicationFrame frame)
     {
         configManager.setInt("main.x", frame.getX());
@@ -92,9 +79,6 @@ public class WindowStateManager
         Logger.debug("Состояние главного окна сохранено");
     }
 
-    /**
-     * Восстанавливает состояние главного окна
-     */
     public void restoreMainWindowState(MainApplicationFrame frame)
     {
         int x = configManager.getInt("main.x", frame.getX());

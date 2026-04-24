@@ -34,7 +34,6 @@ public class MainApplicationFrame extends JFrame
         configManager = new ConfigManager();
         windowStateManager = new WindowStateManager(configManager);
 
-        // Загружаем конфигурацию
         configManager.load();
 
         int inset = 50;
@@ -53,7 +52,6 @@ public class MainApplicationFrame extends JFrame
 
         setJMenuBar(generateMenuBar());
 
-        // Восстанавливаем состояния окон
         windowStateManager.restoreMainWindowState(this);
         windowStateManager.restoreWindowState("game", gameWindow);
         windowStateManager.restoreWindowState("log", logWindow);
@@ -161,18 +159,15 @@ public class MainApplicationFrame extends JFrame
 
         if (result == JOptionPane.YES_OPTION)
         {
-            // Останавливаем все окна
             if (gameWindow != null)
             {
                 gameWindow.stop();
             }
 
-            // Сохраняем состояния окон
             windowStateManager.saveMainWindowState(this);
             windowStateManager.saveWindowState("game", gameWindow);
             windowStateManager.saveWindowState("log", logWindow);
 
-            // Сохраняем конфигурацию
             configManager.save();
 
             Logger.debug("Приложение закрывается пользователем");

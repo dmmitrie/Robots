@@ -7,10 +7,6 @@ import java.util.Properties;
 
 import log.Logger;
 
-/**
- * Класс для управления файлом конфигурации
- * Отвечает за чтение и запись свойств
- */
 public class ConfigManager
 {
     private static final String CONFIG_FILE = System.getProperty("user.home") +
@@ -22,9 +18,6 @@ public class ConfigManager
         properties = new Properties();
     }
 
-    /**
-     * Загружает конфигурацию из файла
-     */
     public void load()
     {
         try
@@ -48,9 +41,6 @@ public class ConfigManager
         }
     }
 
-    /**
-     * Сохраняет конфигурацию в файл
-     */
     public void save()
     {
         try
@@ -67,17 +57,11 @@ public class ConfigManager
         }
     }
 
-    /**
-     * Получает строковое значение по ключу
-     */
     public String getString(String key, String defaultValue)
     {
         return properties.getProperty(key, defaultValue);
     }
 
-    /**
-     * Получает целочисленное значение по ключу
-     */
     public int getInt(String key, int defaultValue)
     {
         try
@@ -90,33 +74,21 @@ public class ConfigManager
         }
     }
 
-    /**
-     * Получает логическое значение по ключу
-     */
     public boolean getBoolean(String key, boolean defaultValue)
     {
         return Boolean.parseBoolean(properties.getProperty(key, String.valueOf(defaultValue)));
     }
 
-    /**
-     * Устанавливает строковое значение
-     */
     public void setString(String key, String value)
     {
         properties.setProperty(key, value);
     }
 
-    /**
-     * Устанавливает целочисленное значение
-     */
     public void setInt(String key, int value)
     {
         properties.setProperty(key, String.valueOf(value));
     }
 
-    /**
-     * Устанавливает логическое значение
-     */
     public void setBoolean(String key, boolean value)
     {
         properties.setProperty(key, String.valueOf(value));

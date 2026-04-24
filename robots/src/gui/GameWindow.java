@@ -18,7 +18,6 @@ public class GameWindow extends JInternalFrame
     {
         super("Игровое поле", true, true, true, true);
 
-        // Устанавливаем значения по умолчанию
         setBounds(DEFAULT_X, DEFAULT_Y, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
         m_visualizer = new GameVisualizer();
@@ -27,7 +26,6 @@ public class GameWindow extends JInternalFrame
         getContentPane().add(panel);
         pack();
 
-        // Перехватываем событие закрытия окна
         addInternalFrameListener(new InternalFrameAdapter()
         {
             @Override
