@@ -1,22 +1,12 @@
 package gui;
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
+import model.RobotModel;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-
-import javax.swing.JDesktopPane;
-import javax.swing.JFrame;
-import javax.swing.JInternalFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 import log.Logger;
 
@@ -25,8 +15,9 @@ public class MainApplicationFrame extends JFrame
     private final JDesktopPane desktopPane = new JDesktopPane();
     private final ConfigManager configManager;
     private final WindowStateManager windowStateManager;
-    private LogWindow logWindow;
     private GameWindow gameWindow;
+    private LogWindow logWindow;
+    private CoordinatesWindow coordinatesWindow;
 
     public MainApplicationFrame()
     {
@@ -38,27 +29,36 @@ public class MainApplicationFrame extends JFrame
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(inset, inset,
-                screenSize.width  - inset*2,
-                screenSize.height - inset*2);
+                screenSize.width - inset * 2,
+                screenSize.height - inset * 2);
 
         setContentPane(desktopPane);
 
-        logWindow = createLogWindow();
-        addWindow(logWindow);
-
+        // Создаём окна
         gameWindow = new GameWindow();
         addWindow(gameWindow);
 
+        logWindow = new LogWindow(Logger.getDefaultLogSource());
+        addWindow(logWindow);
+
+        // Создаём окно координат и передаём модель
+        RobotModel model = gameWindow.getModel();
+        coordinatesWindow = new CoordinatesWindow(model);
+        addWindow(coordinatesWindow);
+
         setJMenuBar(generateMenuBar());
 
+        // Восстанавливаем состояния
         windowStateManager.restoreMainWindowState(this);
         windowStateManager.restoreAllWindowsState(desktopPane);
 
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
-        addWindowListener(new WindowAdapter() {
+        addWindowListener(new WindowAdapter()
+        {
             @Override
-            public void windowClosing(WindowEvent e) {
+            public void windowClosing(WindowEvent e)
+            {
                 exitApplication();
             }
         });
@@ -66,10 +66,6 @@ public class MainApplicationFrame extends JFrame
 
     protected LogWindow createLogWindow()
     {
-        LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
-        setMinimumSize(logWindow.getSize());
-        logWindow.pack();
-        Logger.debug("Протокол работает");
         return logWindow;
     }
 
