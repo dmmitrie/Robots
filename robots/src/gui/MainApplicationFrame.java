@@ -30,7 +30,6 @@ public class MainApplicationFrame extends JFrame
 
     public MainApplicationFrame()
     {
-        // Инициализируем менеджеры
         configManager = new ConfigManager();
         windowStateManager = new WindowStateManager(configManager);
 
@@ -53,8 +52,7 @@ public class MainApplicationFrame extends JFrame
         setJMenuBar(generateMenuBar());
 
         windowStateManager.restoreMainWindowState(this);
-        windowStateManager.restoreWindowState("game", gameWindow);
-        windowStateManager.restoreWindowState("log", logWindow);
+        windowStateManager.restoreAllWindowsState(desktopPane);
 
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
@@ -165,8 +163,7 @@ public class MainApplicationFrame extends JFrame
             }
 
             windowStateManager.saveMainWindowState(this);
-            windowStateManager.saveWindowState("game", gameWindow);
-            windowStateManager.saveWindowState("log", logWindow);
+            windowStateManager.saveAllWindowsState(desktopPane);
 
             configManager.save();
 

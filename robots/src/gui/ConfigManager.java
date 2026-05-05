@@ -3,6 +3,7 @@ package gui;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Properties;
 
 import log.Logger;
@@ -12,6 +13,7 @@ public class ConfigManager
     private static final String CONFIG_FILE = System.getProperty("user.home") +
             File.separator + ".robots_config.properties";
     private Properties properties;
+    private boolean loaded = false;
 
     public ConfigManager()
     {
@@ -25,33 +27,40 @@ public class ConfigManager
             File configFile = new File(CONFIG_FILE);
             if (!configFile.exists())
             {
-                Logger.debug("Файл конфигурации не найден");
+                Logger.debug("Файл конфигурации не найден, будет создан новый");
+                loaded = true;
                 return;
             }
 
-            FileInputStream fis = new FileInputStream(configFile);
-            properties.load(fis);
-            fis.close();
+            try (FileInputStream fis = new FileInputStream(configFile))
+            {
+                properties.load(fis);
+            }
 
+            loaded = true;
             Logger.debug("Конфигурация загружена из " + CONFIG_FILE);
         }
-        catch (Exception e)
+        catch (IOException e)
         {
             Logger.error("Ошибка при загрузке конфигурации: " + e.getMessage());
+            loaded = false;
         }
     }
 
     public void save()
     {
-        try
+        if (!loaded)
         {
-            FileOutputStream fos = new FileOutputStream(CONFIG_FILE);
-            properties.store(fos, "Robots Application Configuration");
-            fos.close();
+            Logger.error("Конфигурация не была загружена. Вызовите load() перед save()");
+            return;
+        }
 
+        try (FileOutputStream fos = new FileOutputStream(CONFIG_FILE))
+        {
+            properties.store(fos, "Robots Application Configuration");
             Logger.debug("Конфигурация сохранена в " + CONFIG_FILE);
         }
-        catch (Exception e)
+        catch (IOException e)
         {
             Logger.error("Ошибка при сохранении конфигурации: " + e.getMessage());
         }
@@ -92,5 +101,10 @@ public class ConfigManager
     public void setBoolean(String key, boolean value)
     {
         properties.setProperty(key, String.valueOf(value));
+    }
+
+    public boolean isLoaded()
+    {
+        return loaded;
     }
 }

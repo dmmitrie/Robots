@@ -1,5 +1,6 @@
 package gui;
 
+import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
 
 import log.Logger;
@@ -91,5 +92,27 @@ public class WindowStateManager
         frame.setExtendedState(extendedState);
 
         Logger.debug("Состояние главного окна восстановлено");
+    }
+
+    public void saveAllWindowsState(JDesktopPane desktopPane)
+    {
+        JInternalFrame[] frames = desktopPane.getAllFrames();
+        for (JInternalFrame frame : frames)
+        {
+            String title = frame.getTitle().replaceAll("\\s+", "");
+            saveWindowState(title.toLowerCase(), frame);
+        }
+        Logger.debug("Состояния всех окон сохранены");
+    }
+
+    public void restoreAllWindowsState(JDesktopPane desktopPane)
+    {
+        JInternalFrame[] frames = desktopPane.getAllFrames();
+        for (JInternalFrame frame : frames)
+        {
+            String title = frame.getTitle().replaceAll("\\s+", "");
+            restoreWindowState(title.toLowerCase(), frame);
+        }
+        Logger.debug("Состояния всех окон восстановлены");
     }
 }
