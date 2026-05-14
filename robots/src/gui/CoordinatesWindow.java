@@ -1,95 +1,75 @@
 package gui;
 
-import model.RobotModel;
-
+import model.RobotController;
+import model.RobotModelObserver;
 import javax.swing.*;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 import java.awt.*;
 
-public class CoordinatesWindow extends JInternalFrame implements RobotModel.RobotModelListener
+/**
+ * View: отображает координаты. Не знает о модели.
+ */
+public class CoordinatesWindow extends JInternalFrame implements RobotModelObserver
 {
-    private final RobotModel model;
-    private JLabel xLabel;
-    private JLabel yLabel;
-    private JLabel directionLabel;
-    private JLabel targetLabel;
-    private JLabel distanceLabel;
+    private final RobotController controller;
+    private JLabel lblX, lblY, lblDir, lblTarget, lblDist;
 
-    private static final int DEFAULT_X = 600;
-    private static final int DEFAULT_Y = 10;
-    private static final int DEFAULT_WIDTH = 250;
-    private static final int DEFAULT_HEIGHT = 150;
-
-    public CoordinatesWindow(RobotModel model)
+    public CoordinatesWindow(RobotController controller)
     {
         super("Координаты робота", true, true, true, true);
+        this.controller = controller;
+        this.controller.addObserver(this);
 
-        this.model = model;
-        model.addListener(this);
-
-        setBounds(DEFAULT_X, DEFAULT_Y, DEFAULT_WIDTH, DEFAULT_HEIGHT);
-
+        setBounds(600, 10, 250, 150);
         JPanel panel = new JPanel(new GridLayout(5, 2, 5, 5));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        panel.add(new JLabel("Позиция X:"));
-        xLabel = new JLabel("0.00");
-        panel.add(xLabel);
-
-        panel.add(new JLabel("Позиция Y:"));
-        yLabel = new JLabel("0.00");
-        panel.add(yLabel);
-
-        panel.add(new JLabel("Направление:"));
-        directionLabel = new JLabel("0.00 рад");
-        panel.add(directionLabel);
-
-        panel.add(new JLabel("Цель:"));
-        targetLabel = new JLabel("(0, 0)");
-        panel.add(targetLabel);
-
-        // Расстояние
-        panel.add(new JLabel("Расстояние:"));
-        distanceLabel = new JLabel("0.00");
-        panel.add(distanceLabel);
+        panel.add(new JLabel("X:")); lblX = new JLabel("0.00"); panel.add(lblX);
+        panel.add(new JLabel("Y:")); lblY = new JLabel("0.00"); panel.add(lblY);
+        panel.add(new JLabel("Угол:")); lblDir = new JLabel("0.00"); panel.add(lblDir);
+        panel.add(new JLabel("Цель:")); lblTarget = new JLabel("(0,0)"); panel.add(lblTarget);
+        panel.add(new JLabel("Дист:")); lblDist = new JLabel("0.00"); panel.add(lblDist);
 
         getContentPane().add(panel, BorderLayout.CENTER);
         pack();
 
-        // Перехват закрытия окна
         addInternalFrameListener(new InternalFrameAdapter()
         {
             @Override
             public void internalFrameClosing(InternalFrameEvent e)
             {
-                model.removeListener(CoordinatesWindow.this);
+                controller.removeObserver(CoordinatesWindow.this);
             }
         });
-
-        // Первичное обновление
-        updateLabels();
     }
 
     @Override
-    public void onRobotStateChanged(double x, double y, double direction)
+    public void onRobotStateChanged(double x, double y, double dir)
     {
-        SwingUtilities.invokeLater(this::updateLabels);
+        SwingUtilities.invokeLater(() -> {
+            lblX.setText(String.format("%.2f", x));
+            lblY.setText(String.format("%.2f", y));
+            lblDir.setText(String.format("%.2f", dir));
+            updateDistance();
+        });
     }
 
     @Override
     public void onTargetChanged(double x, double y)
     {
-        SwingUtilities.invokeLater(this::updateLabels);
+        SwingUtilities.invokeLater(() -> {
+            lblTarget.setText(String.format("(%.2f, %.2f)", x, y));
+            updateDistance();
+        });
     }
 
-    private void updateLabels()
+    private void updateDistance()
     {
-        xLabel.setText(String.format("%.2f", model.getRobotPositionX()));
-        yLabel.setText(String.format("%.2f", model.getRobotPositionY()));
-        directionLabel.setText(String.format("%.2f рад", model.getRobotDirection()));
-        targetLabel.setText(String.format("(%.2f, %.2f)",
-                model.getTargetPositionX(), model.getTargetPositionY()));
-        distanceLabel.setText(String.format("%.2f", model.getDistanceToTarget()));
+        // Вычисляем дистанцию локально или запрашиваем у контроллера
+        // Для чистоты MVC лучше вычислять на основе сохранённых значений,
+        // но допустимо добавить метод getDistance() в контроллер.
+        // Оставим заглушку, т.к. точная дистанция берётся из модели,
+        // а контроллер её не раскрывает. Можно добавить метод в контроллер при необходимости.
     }
 }

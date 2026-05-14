@@ -1,6 +1,7 @@
 package gui;
 
-import model.RobotModel;
+import model.RobotController;
+import model.RobotModelObserver;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,43 +9,50 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 
-//Визуализация робота (View в MVC)
-// Отображает состояние модели
-public class GameVisualizer extends JPanel implements RobotModel.RobotModelListener
+/**
+ *View: отображает состояние. Не держит ссылку на модель.
+ */
+public class GameVisualizer extends JPanel implements RobotModelObserver
 {
-    private final RobotModel model;
+    private final RobotController controller;
 
-    private static final int DEFAULT_WIDTH = 400;
-    private static final int DEFAULT_HEIGHT = 400;
+    // Локальное состояние для отрисовки (обновляется через коллбэки)
+    private double robotX = 100, robotY = 100, robotDir = 0;
+    private double targetX = 150, targetY = 100;
 
-    public GameVisualizer(RobotModel model)
+    public GameVisualizer(RobotController controller)
     {
-        this.model = model;
-        model.addListener(this);
+        this.controller = controller;
+        this.controller.addObserver(this);
 
         addMouseListener(new MouseAdapter()
         {
             @Override
             public void mouseClicked(MouseEvent e)
             {
-                // Передаём координаты клика в контроллер через модель
-                model.setTargetPosition(e.getX(), e.getY());
+                // Взаимодействие только через контроллер
+                controller.setTarget(e.getX(), e.getY());
             }
         });
 
         setDoubleBuffered(true);
-        setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
+        setPreferredSize(new Dimension(400, 400));
     }
 
     @Override
     public void onRobotStateChanged(double x, double y, double direction)
     {
+        this.robotX = x;
+        this.robotY = y;
+        this.robotDir = direction;
         SwingUtilities.invokeLater(this::repaint);
     }
 
     @Override
     public void onTargetChanged(double x, double y)
     {
+        this.targetX = x;
+        this.targetY = y;
         SwingUtilities.invokeLater(this::repaint);
     }
 
@@ -53,58 +61,37 @@ public class GameVisualizer extends JPanel implements RobotModel.RobotModelListe
     {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
-        AffineTransform originalTransform = g2d.getTransform();
+        AffineTransform original = g2d.getTransform();
 
         drawRobot(g2d);
         drawTarget(g2d);
 
-        g2d.setTransform(originalTransform);
+        g2d.setTransform(original);
     }
 
     private void drawRobot(Graphics2D g)
     {
-        int robotCenterX = round(model.getRobotPositionX());
-        int robotCenterY = round(model.getRobotPositionY());
-        double direction = model.getRobotDirection();
-
-        AffineTransform robotTransform = g.getTransform();
-        g.rotate(direction, robotCenterX, robotCenterY);
+        int cx = round(robotX);
+        int cy = round(robotY);
+        AffineTransform t = g.getTransform();
+        g.rotate(robotDir, cx, cy);
 
         g.setColor(Color.MAGENTA);
-        fillOval(g, robotCenterX, robotCenterY, 30, 10);
+        g.fillOval(cx - 15, cy - 5, 30, 10);
         g.setColor(Color.BLACK);
-        drawOval(g, robotCenterX, robotCenterY, 30, 10);
-        g.setColor(Color.WHITE);
-        fillOval(g, robotCenterX + 10, robotCenterY, 5, 5);
-        g.setColor(Color.BLACK);
-        drawOval(g, robotCenterX + 10, robotCenterY, 5, 5);
-
-        g.setTransform(robotTransform);
+        g.drawOval(cx - 15, cy - 5, 30, 10);
+        g.setTransform(t);
     }
 
     private void drawTarget(Graphics2D g)
     {
-        int x = round(model.getTargetPositionX());
-        int y = round(model.getTargetPositionY());
-
+        int cx = round(targetX);
+        int cy = round(targetY);
         g.setColor(Color.GREEN);
-        fillOval(g, x, y, 5, 5);
+        g.fillOval(cx - 2, cy - 2, 5, 5);
         g.setColor(Color.BLACK);
-        drawOval(g, x, y, 5, 5);
+        g.drawOval(cx - 2, cy - 2, 5, 5);
     }
 
-    private static void fillOval(Graphics g, int centerX, int centerY, int diam1, int diam2)
-    {
-        g.fillOval(centerX - diam1 / 2, centerY - diam2 / 2, diam1, diam2);
-    }
-
-    private static void drawOval(Graphics g, int centerX, int centerY, int diam1, int diam2)
-    {
-        g.drawOval(centerX - diam1 / 2, centerY - diam2 / 2, diam1, diam2);
-    }
-
-    private static int round(double value)
-    {
-        return (int) (value + 0.5);
-    }
+    private static int round(double v) { return (int)(v + 0.5); }
 }

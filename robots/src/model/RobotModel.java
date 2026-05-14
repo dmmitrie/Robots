@@ -1,8 +1,12 @@
 package model;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * Модель робота. Хранит состояние и физику движения.
+ * Не зависит от Swing/GUI.
+ */
 public class RobotModel
 {
     private volatile double robotPositionX = 100;
@@ -12,30 +16,25 @@ public class RobotModel
     private volatile double targetPositionX = 150;
     private volatile double targetPositionY = 100;
 
-    private final List<RobotModelListener> listeners = new ArrayList<>();
+    // Синхронизированный список для потокобезопасного доступа из разных потоков
+    private final List<RobotModelObserver> listeners = new CopyOnWriteArrayList<>();
 
     private static final double MAX_VELOCITY = 0.1;
     private static final double MAX_ANGULAR_VELOCITY = 0.001;
 
-    public interface RobotModelListener
+    public void addObserver(RobotModelObserver observer)
     {
-        void onRobotStateChanged(double x, double y, double direction);
-        void onTargetChanged(double x, double y);
+        listeners.add(observer);
     }
 
-    public void addListener(RobotModelListener listener)
+    public void removeObserver(RobotModelObserver observer)
     {
-        listeners.add(listener);
-    }
-
-    public void removeListener(RobotModelListener listener)
-    {
-        listeners.remove(listener);
+        listeners.remove(observer);
     }
 
     private void notifyRobotStateChanged()
     {
-        for (RobotModelListener listener : new ArrayList<>(listeners))
+        for (RobotModelObserver listener : listeners)
         {
             listener.onRobotStateChanged(robotPositionX, robotPositionY, robotDirection);
         }
@@ -43,43 +42,17 @@ public class RobotModel
 
     private void notifyTargetChanged()
     {
-        for (RobotModelListener listener : new ArrayList<>(listeners))
+        for (RobotModelObserver listener : listeners)
         {
             listener.onTargetChanged(targetPositionX, targetPositionY);
         }
     }
 
-    public double getRobotPositionX()
-    {
-        return robotPositionX;
-    }
-
-    public double getRobotPositionY()
-    {
-        return robotPositionY;
-    }
-
-    public double getRobotDirection()
-    {
-        return robotDirection;
-    }
-
-    public double getTargetPositionX()
-    {
-        return targetPositionX;
-    }
-
-    public double getTargetPositionY()
-    {
-        return targetPositionY;
-    }
-
-    public void setTargetPosition(double x, double y)
-    {
-        this.targetPositionX = x;
-        this.targetPositionY = y;
-        notifyTargetChanged();
-    }
+    public double getX() { return robotPositionX; }
+    public double getY() { return robotPositionY; }
+    public double getDirection() { return robotDirection; }
+    public double getTargetX() { return targetPositionX; }
+    public double getTargetY() { return targetPositionY; }
 
     public double getDistanceToTarget()
     {
@@ -88,14 +61,14 @@ public class RobotModel
         return Math.sqrt(diffX * diffX + diffY * diffY);
     }
 
-    public double getAngleToTarget()
+    public void setTarget(double x, double y)
     {
-        double diffX = targetPositionX - robotPositionX;
-        double diffY = targetPositionY - robotPositionY;
-        return asNormalizedRadians(Math.atan2(diffY, diffX));
+        this.targetPositionX = x;
+        this.targetPositionY = y;
+        notifyTargetChanged();
     }
 
-    public void updatePosition(double velocity, double angularVelocity, double duration)
+    public void update(double velocity, double angularVelocity, double dt)
     {
         velocity = applyLimits(velocity, 0, MAX_VELOCITY);
         angularVelocity = applyLimits(angularVelocity, -MAX_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
@@ -105,58 +78,46 @@ public class RobotModel
 
         if (Math.abs(angularVelocity) < 1e-9)
         {
-            newX = robotPositionX + velocity * duration * Math.cos(robotDirection);
-            newY = robotPositionY + velocity * duration * Math.sin(robotDirection);
+            newX = robotPositionX + velocity * dt * Math.cos(robotDirection);
+            newY = robotPositionY + velocity * dt * Math.sin(robotDirection);
         }
         else
         {
             newX = robotPositionX + velocity / angularVelocity *
-                    (Math.sin(robotDirection + angularVelocity * duration) - Math.sin(robotDirection));
+                    (Math.sin(robotDirection + angularVelocity * dt) - Math.sin(robotDirection));
             newY = robotPositionY - velocity / angularVelocity *
-                    (Math.cos(robotDirection + angularVelocity * duration) - Math.cos(robotDirection));
+                    (Math.cos(robotDirection + angularVelocity * dt) - Math.cos(robotDirection));
         }
 
-        if (Double.isFinite(newX))
-            robotPositionX = newX;
-        if (Double.isFinite(newY))
-            robotPositionY = newY;
+        if (Double.isFinite(newX)) robotPositionX = newX;
+        if (Double.isFinite(newY)) robotPositionY = newY;
 
-        robotDirection = asNormalizedRadians(robotDirection + angularVelocity * duration);
-
+        robotDirection = asNormalizedRadians(robotDirection + angularVelocity * dt);
         notifyRobotStateChanged();
     }
 
     public double calculateAngularVelocity()
     {
-        double angleToTarget = getAngleToTarget();
+        double angleToTarget = asNormalizedRadians(Math.atan2(
+                targetPositionY - robotPositionY, targetPositionX - robotPositionX));
         double angleDiff = angleToTarget - robotDirection;
 
-        // Нормализуем разницу углов (-PI до PI)
-        while (angleDiff > Math.PI)
-            angleDiff -= 2 * Math.PI;
-        while (angleDiff < -Math.PI)
-            angleDiff += 2 * Math.PI;
+        while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+        while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
 
-        // Мёртвая зона
-        if (Math.abs(angleDiff) < 0.2)
-            return 0;
-
+        if (Math.abs(angleDiff) < 0.2) return 0;
         return angleDiff > 0 ? MAX_ANGULAR_VELOCITY : -MAX_ANGULAR_VELOCITY;
     }
 
     private static double applyLimits(double value, double min, double max)
     {
-        if (value < min) return min;
-        if (value > max) return max;
-        return value;
+        return Math.max(min, Math.min(max, value));
     }
 
     private static double asNormalizedRadians(double angle)
     {
-        while (angle < 0)
-            angle += 2 * Math.PI;
-        while (angle >= 2 * Math.PI)
-            angle -= 2 * Math.PI;
+        while (angle < 0) angle += 2 * Math.PI;
+        while (angle >= 2 * Math.PI) angle -= 2 * Math.PI;
         return angle;
     }
 }
