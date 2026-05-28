@@ -1,5 +1,5 @@
 package log;
-
+import collections.BoundedLogBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 
