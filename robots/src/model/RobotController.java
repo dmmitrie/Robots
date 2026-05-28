@@ -1,55 +1,59 @@
 package model;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 /**
- * Контроллер управляет моделью и циклом обновлений.
- * Скрывает модель от внешнего мира.
+ * Контроллер для управления роботом
  */
-public class RobotController
-{
-    private final RobotModel model = new RobotModel();
-    private final Timer timer = new Timer("robot-update-timer", true);
-    private long lastTickTime = 0;
+public class RobotController {
+    private final RobotModel model;
+    private static final double UPDATE_DURATION = 10; // мс
+    private java.util.Timer timer;
 
-    public void start()
-    {
-        lastTickTime = System.currentTimeMillis();
-        timer.scheduleAtFixedRate(new TimerTask()
-        {
-            @Override
-            public void run()
-            {
-                long now = System.currentTimeMillis();
-                double dt = now - lastTickTime; // время в мс
-                lastTickTime = now;
-                tick(dt);
-            }
-        }, 0, 10);
+    public RobotController(RobotModel model) {
+        this.model = model;
     }
 
-    public void stop()
-    {
-        timer.cancel();
-        timer.purge();
-    }
-
-    private void tick(double dt)
-    {
+    /**
+     * Обновляет состояние робота (вызывается по таймеру)
+     */
+    public void update() {
         double distance = model.getDistanceToTarget();
-        if (distance < 10.0) return;
 
-        double velocity = 0.1;
+        // Если робот близко к цели, останавливаемся
+        if (distance < 10.0) {
+            return;
+        }
+
+        double velocity = 0.5; // Максимальная скорость
         double angularVelocity = model.calculateAngularVelocity();
-        model.update(velocity, angularVelocity, dt);
+
+        model.update(velocity, angularVelocity, UPDATE_DURATION);
     }
 
-    public void setTarget(double x, double y)
-    {
+    /**
+     * Устанавливает новую цель
+     */
+    public void setTargetPosition(double x, double y) {
         model.setTarget(x, y);
     }
 
-    public void addObserver(RobotModelObserver observer) { model.addObserver(observer); }
-    public void removeObserver(RobotModelObserver observer) { model.removeObserver(observer); }
+    public RobotModel getModel() {
+        return model;
+    }
+
+    /**
+     * Запускает контроллер (если нужно)
+     */
+    public void start() {
+        // Если нужен отдельный таймер в контроллере
+    }
+
+    /**
+     * Останавливает контроллер
+     */
+    public void stop() {
+        if (timer != null) {
+            timer.cancel();
+            timer.purge();
+        }
+    }
 }
